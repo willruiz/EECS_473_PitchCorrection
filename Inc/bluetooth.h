@@ -1,6 +1,8 @@
 #ifndef BLUETOOTH_H
 #define BLUETOOTH_H
 
+#include <stdint.h>
+
 //BLE modes: a given BLE chip is either a central device or a peripheral device
 typedef uint8_t BLE_mode;
 BLE_mode MODE_CENTRAL = 0;
