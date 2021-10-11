@@ -1,5 +1,7 @@
 // testing microphone
 
+see here also: https://github.com/siguhe/NCS_I2S_nrfx_driver_example/blob/master/src/main.c
+
 #include "nrfx_i2s.h"
 
 int main() {
