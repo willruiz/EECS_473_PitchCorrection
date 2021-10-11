@@ -1,0 +1,14 @@
+// testing microphone
+
+see here also: https://github.com/siguhe/NCS_I2S_nrfx_driver_example/blob/master/src/main.c
+
+#include "nrfx_i2s.h"
+
+int main() {
+ 
+ nrfx_i2s_data_handler_t data_handler;
+ 
+ nrfx_i2s_config_t * config_start = NRFX_I2S_DEFAULT_CONFIG(_pin_sck, _pin_lrck, _pin_mck, _pin_sdout, _pin_sdin)
+ 
+ nrfx_i2s_init(config_start, data_handler);
+}
