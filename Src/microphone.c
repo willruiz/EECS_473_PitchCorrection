@@ -13,6 +13,7 @@
 
 enum Note {A, As, B, C, Cs, D, Ds, E, F, Fs, G, Gs}; // 's' indicates sharp
 Note curr_note;
+float raw_read;
 uint8_t curr_octave; 
 float perc_error;
 uint32_t recieve_buffer[WORDS_IN_RX_BLOCK]; // how many words to receive at one time??
@@ -39,7 +40,7 @@ static void data_handler(nrfx_i2s_buffers_t const *p_released, u32_t status)
 }
 
 // initialize the pin to be used with the microphone.
-void microphone_init(uint8_t LRCL_pin, uint8_t DOUT_pin, uint8_t BCLK_pin) {
+nrfx_err_t microphone_init(uint8_t LRCL_pin, uint8_t DOUT_pin, uint8_t BCLK_pin) {
   // initalize i2s connection with these pins
   // TODO: change this config to fit your MEMS microphone and audio processing needs.
 	nrfx_i2s_config_t config =
@@ -59,12 +60,13 @@ void microphone_init(uint8_t LRCL_pin, uint8_t DOUT_pin, uint8_t BCLK_pin) {
 	if (err_code != NRFX_SUCCESS)
 	{
 		printk("I2S init error\n");
-		return err_code;
 	}
+	return err_code;
+
 }
 
 // read in the current value of the microphone, call this fxn in interrrupts
-float microphone_read() {
+nrfx_err_t microphone_read() {
    // initiate i2s recieve 
 	memset(&recieve_buffer, 0x00, sizeof(recieve_buffer));
 	initial_buffers->p_rx_buffer = recieve_buffer;
@@ -75,7 +77,9 @@ float microphone_read() {
 		printk("I2S start error\n");
 		return err_code;
 	}
-	//nrfx_i2s_stop() //stop recording
+	k_sleep(K_SECONDS(5));// wait for short period (choose sample length)
+	nrfx_i2s_stop() //stop recording
+	return err_code;
 	
 }
   
