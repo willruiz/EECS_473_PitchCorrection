@@ -11,10 +11,10 @@
 
 // Microphone Interface
 
+#define WORDS_IN_RX_BLOCK 512
+
+
 enum Note {A, As, B, C, Cs, D, Ds, E, F, Fs, G, Gs}; // 's' indicates sharp
-Note curr_note;
-uint8_t curr_octave; 
-float perc_error;
   
 // initialize the pin to be used with the microphone.
 void microphone_init(uint8_t pin);
