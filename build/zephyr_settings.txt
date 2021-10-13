@@ -1,3 +1,0 @@
-"BOARD_ROOT":"C:/Users/qhart/ncs/nrf"
-"DTS_ROOT":"C:/Users/qhart/ncs/nrf"
-"MODULE_EXT_ROOT":"C:/Users/qhart/ncs/nrf"
