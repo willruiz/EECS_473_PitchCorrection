@@ -2,6 +2,8 @@
 #define MICROPHONE_H
 
 #include <stdint.h>
+#include "nrfx_i2s.h"
+#include "nrfx_errors.h"
 
 // Used https://os.mbed.com/users/4180_1/notebook/using-a-microphone-for-audio-input/ for help & inspiration
 
@@ -17,14 +19,14 @@
 enum Note {A, As, B, C, Cs, D, Ds, E, F, Fs, G, Gs}; // 's' indicates sharp
   
 // initialize the pin to be used with the microphone.
-void microphone_init(uint8_t pin);
+nrfx_err_t microphone_init(uint8_t LRCL_pin, uint8_t DOUT_pin, uint8_t BCLK_pin);
 
 // read in the current value of the microphone, use in interrrupts
-float microphone_read();
+nrfx_err_t microphone_read(void);
   
 // tuning, error checking, note identifying algorithm
 // assign curr_note, perc_error for output to haptic motors and/or screen
-void convert();
+void convert(void);
 
 
 
