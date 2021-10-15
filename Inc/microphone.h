@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include "nrfx_i2s.h"
-#include "nrfx_errors.h"
 
 // Used https://os.mbed.com/users/4180_1/notebook/using-a-microphone-for-audio-input/ for help & inspiration
 
