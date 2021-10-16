@@ -4,29 +4,26 @@
 #include <stdint.h>
 #include "nrfx_i2s.h"
 
-// Used https://os.mbed.com/users/4180_1/notebook/using-a-microphone-for-audio-input/ for help & inspiration
+// Pitch detection tunable constants
+#define SAMPLE_RATE 35370           // The sample rate of the microphone at the given PWM clock frequency
+#define MAX_FREQUENCY 5000          // The maximum frequency we check for
+#define MIN_FREQUENCY 130           // The minimum frequency we check for
+#define K 0.98                      // The threshold constant in the computing algorithm (see paper)
 
-// I2S microphone here has its own library : https://os.mbed.com/users/p07gbar/code/I2S/log/455d5826751b/I2S.h/
-
-// possibly useful, haven't read entirely: https://www.analog.com/media/en/dsp-documentation/embedded-media-processing/embedded-media-processing-chapter5.pdf
-
-// Microphone Interface
-
-#define WORDS_IN_RX_BLOCK 512
-
-
-enum Note {A, As, B, C, Cs, D, Ds, E, F, Fs, G, Gs}; // 's' indicates sharp
+// Derived constants
+#define MIN_TAU SAMPLE_RATE / MAX_FREQUENCY
+#define MAX_TAU SAMPLE_RATE / MIN_FREQUENCY
+#define BUF_SIZE (MAX_TAU - MIN_TAU) * 2
   
-// initialize the pin to be used with the microphone.
-nrfx_err_t microphone_init(uint8_t LRCL_pin, uint8_t DOUT_pin, uint8_t BCLK_pin);
+// Initialize the microphone driver. Pass BLCK and LRCL PWM pins that should be connected to the clock pins on both the microphone and the nRF. See implementation for details.
+nrfx_err_t microphone_init(uint8_t LRCL_pin, uint8_t DIN_pin, uint8_t BCLK_pin, uint8_t BLCK_PWM_pin, uint8_t LRCL_PWM_pin);
 
-// read in the current value of the microphone, use in interrrupts
-nrfx_err_t microphone_read(void);
+// Stops reading microphone data.
+void microphone_stop(void);
   
-// tuning, error checking, note identifying algorithm
-// assign curr_note, perc_error for output to haptic motors and/or screen
-void convert(void);
+// Starts reading microphone data.
+nrfx_err_t microphone_start(void);
 
-
+int32_t *get_audio_buffer();
 
 #endif
