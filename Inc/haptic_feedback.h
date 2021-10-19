@@ -13,32 +13,28 @@
 //  Enable: if the motor is enabled
 //  Strength: the relative vibrational strength
 
-//Initializes haptic interface with default parameters.
-void Haptic_init();
+// Initializes haptic interface with default parameters.
+void haptic_init(uint8_t left_pin, uint8_t right_pin);
 
-//Sets the haptic values for a given side (HAPTIC_LEFT or HAPTIC_RIGHT).
-void Haptic_set(uint8_t haptic, uint8_t enabled, uint8_t strength);
+// Sets the haptic values for a given side (HAPTIC_LEFT or HAPTIC_RIGHT).
+void haptic_set(uint8_t haptic, uint8_t enabled, float strength);
 
-//Sets the haptic values for both sides.
-void Haptic_set_both(uint8_t left_en_in, uint8_t right_en_in, int left_str_in, int right_str_in);
+// Sets the haptic values for both sides.
+void haptic_set_both(uint8_t left_en_in, uint8_t right_en_in, float left_str_in, float right_str_in);
 
-//Sets the haptic values to the defaults.
-void Haptic_default_on();
+// Sets the haptic values to the defaults.
+void haptic_default_on();
     
-//Sets the strength of both motors.
-void Haptic_set_both_strength(uint8_t strength);
+// Sets the strength of both motors.
+void haptic_set_both_strength(float strength);
 
-//Enables or disables both motors.
-void Haptic_set_both_enable(uint8_t enable);
+// Enables or disables both motors.
+void haptic_set_both_enable(uint8_t enable);
 
-//Enables a motor.
-void Haptic_enable(uint8_t haptic, uint8_t enabled);
+// Enables or disables a motor.
+void haptic_enable(uint8_t haptic, uint8_t enable);
 
-//Sets the strength of a motor.
-void Haptic_set_strength(uint8_t haptic, uint8_t strength);
-
-//Tests the range of the motors. Only use this to debug.
-void Haptic_test_both_range(uint8_t max);
-
+// Sets the strength of a motor.
+void haptic_set_strength(uint8_t haptic, float strength);
 
 #endif
