@@ -11,10 +11,21 @@
 #define I2S_LRCK_PWM_PIN 29
 // TODO add motor pins here
 
+// The uncertainty at which we no longer trust the data
+#define UNCERTAINTY_DISCARD 0.5f
+#define DROP_UNCERTAIN_DATA 1 // Change this to zero to turn dropping off
+
 // Main variables
 float frequency;
+float uncertainty;
 const char *note;
 float error;
+uint8_t i;
+
+// Buffer for averaging
+#define BUF_AVG_SIZE 10
+float freqs_avg_buffer[BUF_AVG_SIZE];
+uint8_t freq_curr_index = 0;
 
 int main() {
 
@@ -34,7 +45,20 @@ int main() {
 	while(1) {
 
 		// Perform frequency calculations
-		frequency = predict_freq();
+		frequency = predict_freq(&uncertainty);
+#if DROP_UNCERTAIN_DATA != 0
+		if (uncertainty > UNCERTAINTY_DISCARD)
+			continue;
+#endif
+		freqs_avg_buffer[freq_curr_index] = frequency;
+		freq_curr_index = (freq_curr_index + 1) % BUF_AVG_SIZE;
+
+		// Average the past BUF_AVG_SIZE frequencies
+		frequency = 0;
+		for(i = 0; i < BUF_AVG_SIZE; i++) {
+			frequency += freqs_avg_buffer[i];
+		}
+		frequency /= BUF_AVG_SIZE;
 
 		// Find matching note and error
 		note = find_closest_note(frequency, &error);
@@ -42,7 +66,7 @@ int main() {
 		// TODO set motor values here based on error
 		// Error is a float between 1 and 100.
 
-		printk("Predicted note: %s,\t\frequency: %f\t\t, error: %f", note, frequency, error);
+		printk("Predicted note: %s,\t\tfrequency: %f,\t\terror: %f,\t\tuncertainty: %f\n", note, frequency, error, uncertainty * 100.f);
 	}
 
 }

@@ -15,7 +15,7 @@ float m(uint16_t tau);    // M function (see paper). Used by NSDF
 
 // Predicts the frequency of the audio in the audio buffer.
 // O(SAMPLE_RATE^2 * (1/MIN_FREQUENCY - 1/MAX_FREQUENCY)^2)
-float predict_freq() {
+float predict_freq(float *uncertainty) {
 	
 	// Declarations
     uint16_t tau; //the current iteration of tau, the period in samples
@@ -84,9 +84,15 @@ float predict_freq() {
 		}
     }
 
+	// Set the uncertainty
+	*uncertainty = 1 - curr_max;
+
 	// Disregard any calculations done if the data is bad (no peaks found)
     if (max_tau <= 0) {
         //printk("ERROR: No max tau found with threshold %f\n", threshold); // Debug message if there is no peak found.
+		
+		// Set the uncertainty to one for bad data.
+		*uncertainty = 1;
         return 0;
     }
 
