@@ -1,4 +1,5 @@
 #include <zephyr.h>
+#include <hal/nrf_gpio.h>
 
 #include "microphone.h"
 #include "pitchdetection.h"
@@ -16,6 +17,10 @@
 // The uncertainty at which we no longer trust the data
 #define UNCERTAINTY_DISCARD 0.5f
 #define DROP_UNCERTAIN_DATA 1 // Change this to zero to turn dropping off
+
+// Debug pin for latency testing
+#define DEBUG_LATENCY_PIN 16
+#define DO_LATENCY_TESTING 1
 
 // Main variables
 float frequency;
@@ -43,13 +48,42 @@ int main() {
 
 	// Initialize motor output
 	haptic_init(HAPTIC_LEFT_PIN, HAPTIC_RIGHT_PIN);
-	haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, 0.75f);
-	while(1) {}
+
+	// Optionally initialize latency debugging pin
+	if (DO_LATENCY_TESTING) {
+		nrf_gpio_cfg_output(DEBUG_LATENCY_PIN);
+	}
 
 	// Start microphone
 	microphone_start();
 
+	// // Haptic motor testing code for milestone 1
+	// while(1) {
+	// 	haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, 0.75f);
+	// 	haptic_set(HAPTIC_RIGHT, HAPTIC_DISABLED, 0.);
+	// 	k_sleep(K_SECONDS(1));
+	// 	printk("Done.");
+	// 	haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, 0.25f);
+	// 	haptic_set(HAPTIC_RIGHT, HAPTIC_ENABLED, 0.8f);
+	// 	k_sleep(K_SECONDS(1));
+	// 	printk("Done.");
+	// }
+
+	// // Microphone testing code for milestone 1
+	// int32_t *audio_buf = get_audio_buffer();
+	// uint16_t i;
+	// while(1) {
+	// 	for(i = 0; i < BUF_SIZE; i++) {
+	// 		printk("%d,\n", audio_buf[i]);
+	// 	}
+	// }
+
 	while(1) {
+
+		// Latency testing code
+		if (DO_LATENCY_TESTING) {
+			nrf_gpio_pin_set(DEBUG_LATENCY_PIN);
+		}
 
 		// Perform frequency calculations
 		frequency = predict_freq(&uncertainty);
@@ -71,6 +105,12 @@ int main() {
 		// Set motor output to reflect error
 		haptic_set_both(HAPTIC_ENABLED, error, HAPTIC_ENABLED, error);
 
+		// Latency testing code
+		if (DO_LATENCY_TESTING) {
+			nrf_gpio_pin_clear(DEBUG_LATENCY_PIN);
+			k_sleep(K_SECONDS(1));
+		}
+		
 		printk("Predicted note: %s,\t\tfrequency: %f,\t\terror: %f,\t\tuncertainty: %f\n", note, frequency, error, uncertainty * 100.f);
 	}
 
