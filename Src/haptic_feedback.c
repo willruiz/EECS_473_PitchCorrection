@@ -34,8 +34,6 @@ void set_vibration() {
     // Write to sequence
     pwm_seq[0] = (left_en == HAPTIC_ENABLED)? (uint16_t)((float)(HAPTIC_PWM_PERIOD * left_strength)) : 0;
 
-    printk("left: %u\n", pwm_seq[0]);
-
     // Right motor
     // Check boundary conditions
     right_strength = (right_strength < 0.f)? 0.f : (right_strength > 1.f)? 1.f : right_strength;
