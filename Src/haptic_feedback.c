@@ -6,7 +6,7 @@
 #include "haptic_feedback.h"
 
 #define HAPTIC_PWM_CLOCK NRF_PWM_CLK_16MHz
-#define HAPTIC_PWM_PERIOD 10000
+#define HAPTIC_PWM_PERIOD 16000 //1ms
 
 
 // Pins
@@ -22,43 +22,29 @@ uint8_t left_en;
 uint8_t right_en;
 
 // PWM sequences for left and right.
-uint16_t pwm_seq_l[2] = {0x8000, HAPTIC_PWM_PERIOD};
-uint16_t pwm_seq_r[2] = {0x8000, HAPTIC_PWM_PERIOD};
-nrf_pwm_sequence_t seq_l;
-nrf_pwm_sequence_t seq_r;
+uint16_t pwm_seq[4] = {0 /* Left */, 0 /* Right */, 0 /* Unused */, 0 /* Unused */};
 
 // CRITICAL HARDWARE INTERFACING FUNCTION- SETS PWM DUTY CYCLES
 // DO NOT CALL THIS FROM APPLICATION CODE
 void set_vibration() { 
 
     // Left motor
-    if (left_en == HAPTIC_ENABLED) {
-        // Check boundary conditions
-        left_strength = (left_strength < 0.f)? 0.f : (left_strength > 1.f)? 1.f : left_strength;
-        // Set sequence
-        pwm_seq_l[0] = 0x8000 | (uint16_t)((float)(HAPTIC_PWM_PERIOD * left_strength));
-        pwm_seq_l[1] =          (uint16_t)((float)(HAPTIC_PWM_PERIOD * (1 - left_strength)));
-    } else {
-        // Set sequence
-        pwm_seq_l[0] = 0x8000;
-        pwm_seq_l[1] = HAPTIC_PWM_PERIOD;
-    }
+    // Check boundary conditions
+    left_strength = (left_strength < 0.f)? 0.f : (left_strength > 1.f)? 1.f : left_strength;
+    // Write to sequence
+    pwm_seq[0] = (left_en == HAPTIC_ENABLED)? (uint16_t)((float)(HAPTIC_PWM_PERIOD * left_strength)) : 0;
+
+    printk("left: %u\n", pwm_seq[0]);
 
     // Right motor
-    if (right_en == HAPTIC_ENABLED) {
-        // Check boundary conditions
-        right_strength = (right_strength < 0.f)? 0.f : (right_strength > 1.f)? 1.f : right_strength;
-        // Set sequence
-        pwm_seq_r[0] = 0x8000 | (uint16_t)((float)(HAPTIC_PWM_PERIOD * right_strength));
-        pwm_seq_r[1] =          (uint16_t)((float)(HAPTIC_PWM_PERIOD * (1 - right_strength)));
-    } else {
-        // Set sequence
-        pwm_seq_r[0] = 0x8000;
-        pwm_seq_r[1] = HAPTIC_PWM_PERIOD;
-    }
+    // Check boundary conditions
+    right_strength = (right_strength < 0.f)? 0.f : (right_strength > 1.f)? 1.f : right_strength;
+    // Write to sequence
+    pwm_seq[1] = (right_en == HAPTIC_ENABLED)? (uint16_t)((float)(HAPTIC_PWM_PERIOD * right_strength)) : 0;
 
-    pwm_seq_l[0] = 0x8000 | 500;
-    pwm_seq_l[1] = 500;
+    if (NRF_PWM2->EVENTS_SEQEND[0]) {
+        NRF_PWM2->TASKS_SEQSTART[0] = 1;
+    }
 
 }
 
@@ -69,13 +55,16 @@ void haptic_init(uint8_t left_pin_, uint8_t right_pin_) {
     right_pin = right_pin_;
 
     // PWM configuration
-    static uint16_t pwm_seq[4] = {1000, 15000, 0, 0};
+    pwm_seq[0] = 0; // Left PWM
+    pwm_seq[1] = 0; // Right PWM
+    pwm_seq[2] = 0; // Unused
+    pwm_seq[3] = 0; // Unused
     NRF_PWM2->PSEL.OUT[0] = (left_pin << PWM_PSEL_OUT_PIN_Pos) | (PWM_PSEL_OUT_CONNECT_Connected << PWM_PSEL_OUT_CONNECT_Pos);
     NRF_PWM2->PSEL.OUT[1] = (right_pin << PWM_PSEL_OUT_PIN_Pos) | (PWM_PSEL_OUT_CONNECT_Connected << PWM_PSEL_OUT_CONNECT_Pos);
     NRF_PWM2->ENABLE      = (PWM_ENABLE_ENABLE_Enabled << PWM_ENABLE_ENABLE_Pos);
     NRF_PWM2->MODE        = (PWM_MODE_UPDOWN_Up << PWM_MODE_UPDOWN_Pos);
     NRF_PWM2->PRESCALER   = (PWM_PRESCALER_PRESCALER_DIV_16 << PWM_PRESCALER_PRESCALER_Pos);
-    NRF_PWM2->COUNTERTOP  = (16000 << PWM_COUNTERTOP_COUNTERTOP_Pos); //1 msec
+    NRF_PWM2->COUNTERTOP  = (HAPTIC_PWM_PERIOD << PWM_COUNTERTOP_COUNTERTOP_Pos);
     NRF_PWM2->LOOP        = (PWM_LOOP_CNT_Disabled << PWM_LOOP_CNT_Pos);
     NRF_PWM2->DECODER   = (PWM_DECODER_LOAD_Individual << PWM_DECODER_LOAD_Pos) | 
                       (PWM_DECODER_MODE_RefreshCount << PWM_DECODER_MODE_Pos);
