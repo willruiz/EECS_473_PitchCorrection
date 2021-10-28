@@ -9,18 +9,18 @@
 #define I2S_LRCK_PIN 4
 #define I2S_DIN_PIN 5
 #define I2S_BCLK_PIN 2
-#define I2S_BCLK_PWM_PIN 28
-#define I2S_LRCK_PWM_PIN 29
+#define I2S_BCLK_PWM_PIN 29
+#define I2S_LRCK_PWM_PIN 28
 #define HAPTIC_LEFT_PIN 11
 #define HAPTIC_RIGHT_PIN 31
 
 // The uncertainty at which we no longer trust the data
 #define UNCERTAINTY_DISCARD 0.5f
-#define DROP_UNCERTAIN_DATA 1 // Change this to zero to turn dropping off
+#define DROP_UNCERTAIN_DATA 0 // Change this to zero to turn dropping off
 
 // Debug pin for latency testing
 #define DEBUG_LATENCY_PIN 16
-#define DO_LATENCY_TESTING 1
+#define DO_LATENCY_TESTING 0
 
 // Main variables
 float frequency;
@@ -58,15 +58,11 @@ int main() {
 	microphone_start();
 
 	// // Haptic motor testing code for milestone 1
+	// uint8_t max = 0;
 	// while(1) {
-	// 	haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, 0.75f);
-	// 	haptic_set(HAPTIC_RIGHT, HAPTIC_DISABLED, 0.);
-	// 	k_sleep(K_SECONDS(1));
-	// 	printk("Done.");
-	// 	haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, 0.25f);
-	// 	haptic_set(HAPTIC_RIGHT, HAPTIC_ENABLED, 0.8f);
-	// 	k_sleep(K_SECONDS(1));
-	// 	printk("Done.");
+	// 	haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, (float)max / 255.f);
+	// 	k_sleep(K_MSEC(100));
+	// 	max = (max + 1) % 255;
 	// }
 
 	// // Microphone testing code for milestone 1
@@ -103,7 +99,7 @@ int main() {
 		note = find_closest_note(frequency, &error);
 
 		// Set motor output to reflect error
-		haptic_set_both(HAPTIC_ENABLED, error, HAPTIC_ENABLED, error);
+		haptic_set_both(HAPTIC_ENABLED, error / 100.f, HAPTIC_ENABLED, error / 100.f);
 
 		// Latency testing code
 		if (DO_LATENCY_TESTING) {

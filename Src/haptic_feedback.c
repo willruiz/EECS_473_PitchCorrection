@@ -32,13 +32,13 @@ void set_vibration() {
     // Check boundary conditions
     left_strength = (left_strength < 0.f)? 0.f : (left_strength > 1.f)? 1.f : left_strength;
     // Write to sequence
-    pwm_seq[0] = (left_en == HAPTIC_ENABLED)? (uint16_t)((float)(HAPTIC_PWM_PERIOD * left_strength)) : 0;
+    pwm_seq[0] = (left_en == HAPTIC_ENABLED)? (uint16_t)((float)(HAPTIC_PWM_PERIOD * (1-left_strength))) : 0;
 
     // Right motor
     // Check boundary conditions
     right_strength = (right_strength < 0.f)? 0.f : (right_strength > 1.f)? 1.f : right_strength;
     // Write to sequence
-    pwm_seq[1] = (right_en == HAPTIC_ENABLED)? (uint16_t)((float)(HAPTIC_PWM_PERIOD * right_strength)) : 0;
+    pwm_seq[1] = (right_en == HAPTIC_ENABLED)? (uint16_t)((float)(HAPTIC_PWM_PERIOD * (1-right_strength))) : 0;
 
     if (NRF_PWM2->EVENTS_SEQEND[0]) {
         NRF_PWM2->TASKS_SEQSTART[0] = 1;
