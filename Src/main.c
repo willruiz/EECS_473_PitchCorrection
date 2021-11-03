@@ -15,8 +15,8 @@
 #define HAPTIC_RIGHT_PIN 31
 
 // The uncertainty at which we no longer trust the data
-#define UNCERTAINTY_DISCARD 0.5f
-#define DROP_UNCERTAIN_DATA 0 // Change this to zero to turn dropping off
+#define UNCERTAINTY_DISCARD 0.02f
+#define DROP_UNCERTAIN_DATA 1 // Change this to zero to turn dropping off
 
 // Debug pin for latency testing
 #define DEBUG_LATENCY_PIN 16
@@ -30,7 +30,7 @@ float error;
 uint8_t i;
 
 // Buffer for averaging
-#define BUF_AVG_SIZE 10
+#define BUF_AVG_SIZE 100
 float freqs_avg_buffer[BUF_AVG_SIZE];
 uint8_t freq_curr_index = 0;
 

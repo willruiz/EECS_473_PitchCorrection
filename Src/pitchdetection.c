@@ -32,7 +32,6 @@ float predict_freq(float *uncertainty) {
 	}
 	avg /= BUF_SIZE;
 
-
 	// Normalize audio data and convert it actual numbers (I2S data is leading by 6 zeros, so we shift it)
 	// Also store the squared values of the audio data so we don't repeat multiplications later
 	for(i = 0; i < BUF_SIZE; i++) {
@@ -71,6 +70,8 @@ float predict_freq(float *uncertainty) {
 
 	// If the data never crosses 0, it is bad and we should quit.
 	if (p_zero == MIN_TAU) {
+		// Set the uncertainty to one for bad data.
+		*uncertainty = 1;
 		return 0;
 	}
 	
@@ -78,9 +79,9 @@ float predict_freq(float *uncertainty) {
     uint16_t max_tau = 0;
 	curr_max = 0;
     for (tau = p_zero; tau < n_zero; tau++) {
-        if (curr_max < nsdf_buf[tau]) {
+        if (curr_max < nsdf_buf[tau-MIN_TAU]) {
 			max_tau = tau;
-			curr_max = nsdf_buf[tau];
+			curr_max = nsdf_buf[tau-MIN_TAU];
 		}
     }
 
@@ -102,7 +103,7 @@ float predict_freq(float *uncertainty) {
 
 	// These constants have been tuned by Will and Quintin, 10/15
 	// For 35370 Hz sample rate, 1000-5000 frequency min and max, over 190-1179Hz notes
-    return (SAMPLE_RATE / (double)max_tau + 57.997) / 1.37;
+    return SAMPLE_RATE / (double)max_tau;
 }
 
 // Normalized square difference function, from the paper
