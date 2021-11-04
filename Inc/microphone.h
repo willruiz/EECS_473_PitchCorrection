@@ -6,7 +6,7 @@
 
 // Pitch detection tunable constants
 #define SAMPLE_RATE 62500           // The sample rate of the microphone at the given PWM clock frequency
-#define MAX_FREQUENCY 4000          // The maximum frequency we check for
+#define MAX_FREQUENCY 2000          // The maximum frequency we check for
 #define MIN_FREQUENCY 130           // The minimum frequency we check for
 #define K 0.98                      // The threshold constant in the computing algorithm (see paper)
 

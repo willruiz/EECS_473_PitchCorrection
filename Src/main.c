@@ -30,7 +30,7 @@ float error;
 uint8_t i;
 
 // Buffer for averaging
-#define BUF_AVG_SIZE 100
+#define BUF_AVG_SIZE 10
 float freqs_avg_buffer[BUF_AVG_SIZE];
 uint8_t freq_curr_index = 0;
 

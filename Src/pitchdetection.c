@@ -101,9 +101,10 @@ float predict_freq(float *uncertainty) {
 
     // Translate sample period to Hz and return
 
-	// These constants have been tuned by Will and Quintin, 10/15
-	// For 35370 Hz sample rate, 1000-5000 frequency min and max, over 190-1179Hz notes
-    return SAMPLE_RATE / (double)max_tau;
+	// These constants transform from the calculated frequency to
+	// actual frequency based on a linear fit of the data we collected on 11/3.
+	// For 62500 Hz sample rate, 1000-4000 frequency min and max
+    return (SAMPLE_RATE / (double)max_tau + 0.2248771853f) / 1.008076169f;
 }
 
 // Normalized square difference function, from the paper
