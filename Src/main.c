@@ -18,6 +18,8 @@
 #define UNCERTAINTY_DISCARD 0.02f
 #define DROP_UNCERTAIN_DATA 1 // Change this to zero to turn dropping off
 
+//
+
 // Debug pin for latency testing
 #define DEBUG_LATENCY_PIN 16
 #define DO_LATENCY_TESTING 0
@@ -57,12 +59,13 @@ int main() {
 	// Start microphone
 	microphone_start();
 
-	// // Haptic motor testing code for milestone 1
+	// Haptic motor testing code for milestone 1
 	// uint8_t max = 0;
 	// while(1) {
 	// 	haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, (float)max / 255.f);
 	// 	k_sleep(K_MSEC(100));
 	// 	max = (max + 1) % 255;
+	// 	printk("%d\n", max);
 	// }
 
 	// // Microphone testing code for milestone 1
@@ -83,8 +86,11 @@ int main() {
 
 		// Perform frequency calculations
 		frequency = predict_freq(&uncertainty);
-		if (DROP_UNCERTAIN_DATA && uncertainty > UNCERTAINTY_DISCARD)
+		if (DROP_UNCERTAIN_DATA && uncertainty > UNCERTAINTY_DISCARD) {
+			haptic_set_both_enable(HAPTIC_DISABLED);
 			continue;
+		}
+			
 		freqs_avg_buffer[freq_curr_index] = frequency;
 		freq_curr_index = (freq_curr_index + 1) % BUF_AVG_SIZE;
 
@@ -99,7 +105,13 @@ int main() {
 		note = find_closest_note(frequency, &error);
 
 		// Set motor output to reflect error
-		haptic_set_both(HAPTIC_ENABLED, error / 100.f, HAPTIC_ENABLED, error / 100.f);
+		if (error < 0) {
+			haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, error / -100.f);
+			haptic_set(HAPTIC_RIGHT, HAPTIC_DISABLED, 0.f);
+		} else {
+			haptic_set(HAPTIC_RIGHT, HAPTIC_ENABLED, error / 100.f);
+			haptic_set(HAPTIC_LEFT, HAPTIC_DISABLED, 0.f);
+		}
 
 		// Latency testing code
 		if (DO_LATENCY_TESTING) {

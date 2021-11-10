@@ -142,9 +142,9 @@ float m(uint16_t tau) {
 const char* find_closest_note(float frequency, float *error) {
 	for (int i = 1; i < NUM_NOTES; ++i) {
 		if (freqs[i] - frequency > 0) {
-			float diff_half = freqs[i] - freqs[i-1] / 2;
+			float diff_half = (freqs[i] - freqs[i-1]) / 2;
 			if (-1*(freqs[i - 1] - frequency ) < (freqs[i] - frequency)) {
-				if (error) *error = (-1*(freqs[i - 1] - frequency) / diff_half) * 100.;
+				if (error) *error = ((freqs[i - 1] - frequency) / diff_half) * 100.;
 				return notes[i-1];
 			}
 			else {
