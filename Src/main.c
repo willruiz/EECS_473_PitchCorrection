@@ -15,18 +15,27 @@
 #define HAPTIC_RIGHT_PIN 31
 
 // The uncertainty at which we no longer trust the data
-#define UNCERTAINTY_DISCARD 0.02f
+#define UNCERTAINTY_DISCARD 0.05f
 #define DROP_UNCERTAIN_DATA 1 // Change this to zero to turn dropping off
+#define UNCERTAINTY_COUNT_TO_DISABLE 20 //The number of uncertain reads in a row before haptic feedback is disabled
 
-//
+// Debug LED pins
+#define DBG_PIN_LED2 12
+#define DBG_PIN_LED3 13
+#define DBG_PIN_19 6
+#define DBG_PIN_20 7
+#define DBG_PIN_21 8
+#define DBG_PIN_28 14
+#define DBG_PIN_29 15
 
-// Debug pin for latency testing
+// Debug pin for latency testing (PROTOTYPE)
 #define DEBUG_LATENCY_PIN 16
 #define DO_LATENCY_TESTING 0
 
 // Main variables
 float frequency;
 float uncertainty;
+uint16_t uncertainty_counter;
 const char *note;
 float error;
 uint8_t i;
@@ -37,6 +46,17 @@ float freqs_avg_buffer[BUF_AVG_SIZE];
 uint8_t freq_curr_index = 0;
 
 int main() {
+
+	// // Hello world PCB!
+	// #define DEBUG_PIN DBG_PIN_29
+	// nrf_gpio_cfg_output(DEBUG_PIN);
+	// while(1) {
+	// 	nrf_gpio_pin_clear(DEBUG_PIN);
+	// 	k_sleep(K_MSEC(500));
+	// 	nrf_gpio_pin_set(DEBUG_PIN);
+	// 	k_sleep(K_MSEC(500));
+	// }
+
 
 	// Initialize microphone
 	microphone_init(I2S_LRCK_PIN,
@@ -87,9 +107,17 @@ int main() {
 		// Perform frequency calculations
 		frequency = predict_freq(&uncertainty);
 		if (DROP_UNCERTAIN_DATA && uncertainty > UNCERTAINTY_DISCARD) {
-			haptic_set_both_enable(HAPTIC_DISABLED);
+			//TODO add code here to disable the motors if we are uncertain for too long
+			if (uncertainty_counter++ >= UNCERTAINTY_COUNT_TO_DISABLE) {
+				haptic_set_both_enable(HAPTIC_DISABLED);
+				//printk("Uncertain for too long. Haptic feedback disabled.\n");
+			}
+			//printk("Uncertainty drop. Freq %f, Uncertainty %f\n", frequency, uncertainty * 100.f);
 			continue;
 		}
+
+		//We have a not-uncertain frequency
+		uncertainty_counter = 0;
 			
 		freqs_avg_buffer[freq_curr_index] = frequency;
 		freq_curr_index = (freq_curr_index + 1) % BUF_AVG_SIZE;
