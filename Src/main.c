@@ -32,6 +32,9 @@
 #define DEBUG_LATENCY_PIN 16
 #define DO_LATENCY_TESTING 0
 
+//LED debugging
+#define DO_LED_DEBUGGING 1
+
 // Main variables
 float frequency;
 float uncertainty;
@@ -49,11 +52,15 @@ int main() {
 
 	// // Hello world PCB!
 	// #define DEBUG_PIN DBG_PIN_29
+	// #define DEBUG_LED DBG_PIN_LED2
 	// nrf_gpio_cfg_output(DEBUG_PIN);
+	// nrf_gpio_cfg_output(DEBUG_LED);
 	// while(1) {
 	// 	nrf_gpio_pin_clear(DEBUG_PIN);
+	// 	nrf_gpio_pin_clear(DEBUG_LED);
 	// 	k_sleep(K_MSEC(500));
 	// 	nrf_gpio_pin_set(DEBUG_PIN);
+	// 	nrf_gpio_pin_set(DEBUG_LED);
 	// 	k_sleep(K_MSEC(500));
 	// }
 
@@ -74,6 +81,12 @@ int main() {
 	// Optionally initialize latency debugging pin
 	if (DO_LATENCY_TESTING) {
 		nrf_gpio_cfg_output(DEBUG_LATENCY_PIN);
+	}
+
+	// Optionally initialize led debugging pins
+	if (DO_LED_DEBUGGING) {
+		nrf_gpio_cfg_output(DBG_PIN_LED2);
+		nrf_gpio_cfg_output(DBG_PIN_LED3);
 	}
 
 	// Start microphone
@@ -102,6 +115,22 @@ int main() {
 		// Latency testing code
 		if (DO_LATENCY_TESTING) {
 			nrf_gpio_pin_set(DEBUG_LATENCY_PIN);
+		}
+
+		//LED debugging
+		if (DO_LED_DEBUGGING) {
+
+			nrf_gpio_pin_set(DBG_PIN_LED2);
+
+			if ((error > 0 && error < 30.f) || (error < 0 && error > -30.f)) {
+				nrf_gpio_pin_clear(DBG_PIN_LED3);
+			} else {
+				nrf_gpio_pin_set(DBG_PIN_LED3);
+			}
+
+			k_sleep(K_MSEC(100));
+
+			nrf_gpio_pin_clear(DBG_PIN_LED2);
 		}
 
 		// Perform frequency calculations
@@ -134,10 +163,10 @@ int main() {
 
 		// Set motor output to reflect error
 		if (error < 0) {
-			haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, error / -100.f);
+			haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, error / -100.f); //Left is flat
 			haptic_set(HAPTIC_RIGHT, HAPTIC_DISABLED, 0.f);
 		} else {
-			haptic_set(HAPTIC_RIGHT, HAPTIC_ENABLED, error / 100.f);
+			haptic_set(HAPTIC_RIGHT, HAPTIC_ENABLED, error / 100.f); //Right is sharp
 			haptic_set(HAPTIC_LEFT, HAPTIC_DISABLED, 0.f);
 		}
 
@@ -147,7 +176,7 @@ int main() {
 			k_sleep(K_SECONDS(1));
 		}
 		
-		printk("Predicted note: %s,\t\tfrequency: %f,\t\terror: %f,\t\tuncertainty: %f\n", note, frequency, error, uncertainty * 100.f);
+		//printk("Predicted note: %s,\t\tfrequency: %f,\t\terror: %f,\t\tuncertainty: %f\n", note, frequency, error, uncertainty * 100.f);
 	}
 
 }
