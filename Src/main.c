@@ -55,12 +55,18 @@ int main() {
 	// #define DEBUG_LED DBG_PIN_LED2
 	// nrf_gpio_cfg_output(DEBUG_PIN);
 	// nrf_gpio_cfg_output(DEBUG_LED);
+	// nrf_gpio_cfg_input(DBG_PIN_29, NRF_GPIO_PIN_PULLDOWN);
+	// nrf_gpio_cfg_output(I2S_BCLK_PWM_PIN);
+	// nrf_gpio_pin_set(I2S_BCLK_PWM_PIN);
 	// while(1) {
 	// 	nrf_gpio_pin_clear(DEBUG_PIN);
 	// 	nrf_gpio_pin_clear(DEBUG_LED);
 	// 	k_sleep(K_MSEC(500));
-	// 	nrf_gpio_pin_set(DEBUG_PIN);
-	// 	nrf_gpio_pin_set(DEBUG_LED);
+	// 	if (nrf_gpio_pin_read(DBG_PIN_29)) {
+	// 		nrf_gpio_pin_set(DEBUG_PIN);
+	// 		nrf_gpio_pin_set(DEBUG_LED);
+	// 		while(1) {}
+	// 	}
 	// 	k_sleep(K_MSEC(500));
 	// }
 
@@ -122,7 +128,7 @@ int main() {
 
 			nrf_gpio_pin_set(DBG_PIN_LED2);
 
-			if ((error > 0 && error < 30.f) || (error < 0 && error > -30.f)) {
+			if (uncertainty > UNCERTAINTY_DISCARD /*(error > 0 && error < 30.f) || (error < 0 && error > -30.f)*/) {
 				nrf_gpio_pin_clear(DBG_PIN_LED3);
 			} else {
 				nrf_gpio_pin_set(DBG_PIN_LED3);
@@ -131,6 +137,10 @@ int main() {
 			k_sleep(K_MSEC(100));
 
 			nrf_gpio_pin_clear(DBG_PIN_LED2);
+		}
+
+		if (DO_LED_DEBUGGING) {
+
 		}
 
 		// Perform frequency calculations

@@ -7,7 +7,7 @@
 #include <hal/nrf_gpio.h>
 
 // Audio input buffer. Automatically written to by I2S DMA.
-int32_t audio_buf[BUF_SIZE];
+int32_t audio_buf[BUF_SIZE] = {0};
 nrfx_i2s_buffers_t initial_buffers;
 
 ISR_DIRECT_DECLARE(i2s_isr_handler)
