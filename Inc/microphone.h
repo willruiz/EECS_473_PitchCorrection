@@ -5,10 +5,10 @@
 #include "nrfx_i2s.h"
 
 // Pitch detection tunable constants
-#define SAMPLE_RATE 62500           // The sample rate of the microphone at the given PWM clock frequency
+#define SAMPLE_RATE 50000           // The sample rate of the microphone at the given PWM clock frequency
 #define MAX_FREQUENCY 2000          // The maximum frequency we check for
 #define MIN_FREQUENCY 130           // The minimum frequency we check for
-#define K 0.98                      // The threshold constant in the computing algorithm (see paper)
+#define K 0.94                      // The threshold constant in the computing algorithm (see paper)
 
 // Derived constants
 #define MIN_TAU SAMPLE_RATE / MAX_FREQUENCY

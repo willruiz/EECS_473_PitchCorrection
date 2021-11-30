@@ -47,7 +47,7 @@ nrfx_err_t microphone_init(uint8_t LRCL_pin, uint8_t DIN_pin, uint8_t BCLK_pin, 
 
     // PWM initialization code:
     uint32_t out_pins[] = {BCLK_PWM_pin, NRF_PWM_PIN_NOT_CONNECTED, NRF_PWM_PIN_NOT_CONNECTED, NRF_PWM_PIN_NOT_CONNECTED};
-    static uint16_t pwm_seq[2] = {0x8002, 0x0002};
+    static uint16_t pwm_seq[2] = {0x8002, 0x0003};
     nrf_pwm_sequence_t const seq = 
     {
         .values.p_common = pwm_seq,
@@ -60,14 +60,14 @@ nrfx_err_t microphone_init(uint8_t LRCL_pin, uint8_t DIN_pin, uint8_t BCLK_pin, 
     nrf_pwm_pins_set(NRF_PWM0, out_pins);
     nrf_pwm_enable(NRF_PWM0);
     //4 MHz
-    nrf_pwm_configure(NRF_PWM0, NRF_PWM_CLK_16MHz, NRF_PWM_MODE_UP, 0x4);
+    nrf_pwm_configure(NRF_PWM0, NRF_PWM_CLK_16MHz, NRF_PWM_MODE_UP, 0x5);
     nrf_pwm_loop_set(NRF_PWM0, 0);
     nrf_pwm_decoder_set(NRF_PWM0, NRF_PWM_LOAD_COMMON, NRF_PWM_STEP_AUTO);
     nrf_pwm_sequence_set(NRF_PWM0, 0, &seq);
     NRF_PWM0->TASKS_SEQSTART[0] = 1;
 
     uint32_t out_pins2[] = {NRF_PWM_PIN_NOT_CONNECTED, LRCL_PWM_Pin, NRF_PWM_PIN_NOT_CONNECTED, NRF_PWM_PIN_NOT_CONNECTED};
-    static uint16_t pwm_seq2[2] = {0x8000 + 128, 128};
+    static uint16_t pwm_seq2[2] = {0x8000 + 160, 160};
     nrf_pwm_sequence_t const seq2 = 
     {
         .values.p_common = pwm_seq2,
@@ -79,7 +79,7 @@ nrfx_err_t microphone_init(uint8_t LRCL_pin, uint8_t DIN_pin, uint8_t BCLK_pin, 
     nrf_pwm_pins_set(NRF_PWM1, out_pins2);
     nrf_pwm_enable(NRF_PWM1);
     //2.048MHz / 4
-    nrf_pwm_configure(NRF_PWM1, NRF_PWM_CLK_16MHz, NRF_PWM_MODE_UP, 256);
+    nrf_pwm_configure(NRF_PWM1, NRF_PWM_CLK_16MHz, NRF_PWM_MODE_UP, 0x5 * 64);
     nrf_pwm_loop_set(NRF_PWM1, 0);
     nrf_pwm_decoder_set(NRF_PWM1, NRF_PWM_LOAD_COMMON, NRF_PWM_STEP_AUTO);
     nrf_pwm_sequence_set(NRF_PWM1, 0, &seq2);

@@ -15,9 +15,11 @@
 #define HAPTIC_RIGHT_PIN 31
 
 // The uncertainty at which we no longer trust the data
-#define UNCERTAINTY_DISCARD 0.05f
+#define UNCERTAINTY_DISCARD 0.10f
 #define DROP_UNCERTAIN_DATA 1 // Change this to zero to turn dropping off
-#define UNCERTAINTY_COUNT_TO_DISABLE 20 //The number of uncertain reads in a row before haptic feedback is disabled
+#define UNCERTAINTY_COUNT_TO_DISABLE 10 //The number of uncertain reads in a row before haptic feedback is disabled
+
+#define CUTOFF_ERROR 5.f //The allowed error band
 
 // Debug LED pins
 #define DBG_PIN_LED2 12
@@ -29,7 +31,7 @@
 #define DBG_PIN_29 15
 
 // Debug pin for latency testing (PROTOTYPE)
-#define DEBUG_LATENCY_PIN 16
+#define DEBUG_LATENCY_PIN DBG_PIN_29
 #define DO_LATENCY_TESTING 0
 
 //LED debugging
@@ -44,7 +46,7 @@ float error;
 uint8_t i;
 
 // Buffer for averaging
-#define BUF_AVG_SIZE 10
+#define BUF_AVG_SIZE 1
 float freqs_avg_buffer[BUF_AVG_SIZE];
 uint8_t freq_curr_index = 0;
 
@@ -125,23 +127,13 @@ int main() {
 
 		//LED debugging
 		if (DO_LED_DEBUGGING) {
-
-			nrf_gpio_pin_set(DBG_PIN_LED2);
-
 			if (uncertainty > UNCERTAINTY_DISCARD /*(error > 0 && error < 30.f) || (error < 0 && error > -30.f)*/) {
 				nrf_gpio_pin_clear(DBG_PIN_LED3);
 			} else {
 				nrf_gpio_pin_set(DBG_PIN_LED3);
 			}
-
-			k_sleep(K_MSEC(100));
-
-			nrf_gpio_pin_clear(DBG_PIN_LED2);
 		}
 
-		if (DO_LED_DEBUGGING) {
-
-		}
 
 		// Perform frequency calculations
 		frequency = predict_freq(&uncertainty);
@@ -150,6 +142,15 @@ int main() {
 			if (uncertainty_counter++ >= UNCERTAINTY_COUNT_TO_DISABLE) {
 				haptic_set_both_enable(HAPTIC_DISABLED);
 				//printk("Uncertain for too long. Haptic feedback disabled.\n");
+			}
+
+			if (DO_LATENCY_TESTING) {
+				nrf_gpio_pin_clear(DEBUG_LATENCY_PIN);
+				k_sleep(K_SECONDS(1));
+			}
+
+			if (DO_LED_DEBUGGING) {
+				nrf_gpio_pin_clear(DBG_PIN_LED2);
 			}
 			//printk("Uncertainty drop. Freq %f, Uncertainty %f\n", frequency, uncertainty * 100.f);
 			continue;
@@ -172,12 +173,23 @@ int main() {
 		note = find_closest_note(frequency, &error);
 
 		// Set motor output to reflect error
-		if (error < 0) {
+		if (error > -CUTOFF_ERROR && error < CUTOFF_ERROR) {
+			haptic_set_both_enable(HAPTIC_DISABLED);
+			if (DO_LED_DEBUGGING) {
+				nrf_gpio_pin_set(DBG_PIN_LED2);
+			}
+		} else if (error < 0) {
 			haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, error / -100.f); //Left is flat
 			haptic_set(HAPTIC_RIGHT, HAPTIC_DISABLED, 0.f);
+			if (DO_LED_DEBUGGING) {
+				nrf_gpio_pin_clear(DBG_PIN_LED2);
+			}
 		} else {
 			haptic_set(HAPTIC_RIGHT, HAPTIC_ENABLED, error / 100.f); //Right is sharp
 			haptic_set(HAPTIC_LEFT, HAPTIC_DISABLED, 0.f);
+			if (DO_LED_DEBUGGING) {
+				nrf_gpio_pin_clear(DBG_PIN_LED2);
+			}
 		}
 
 		// Latency testing code

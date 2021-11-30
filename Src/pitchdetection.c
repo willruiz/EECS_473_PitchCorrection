@@ -54,22 +54,25 @@ float predict_freq(float *uncertainty) {
 		nsdf_buf[tau-MIN_TAU] = curr_nsdf;
         if (curr_nsdf > curr_max)
             curr_max = curr_nsdf;
-
-		//   p_zero not found     greater than zero   index                    prev less than zero
-		if (p_zero == MIN_TAU && curr_nsdf >= 0 && tau-MIN_TAU > 0 && nsdf_buf[tau-MIN_TAU-1] <= 0) {
-			p_zero = tau;
-		}
-		if (p_zero != MIN_TAU && n_zero == MAX_TAU && curr_nsdf <= 0 && tau-MIN_TAU > 0 && nsdf_buf[tau-MIN_TAU-1] >= 0) {
-			n_zero = tau;
-		}
     }
 
-    //float threshold = curr_max * K; // Threshold from paper. We currently don't use this though.
+    float threshold = curr_max * K; // Threshold from paper. We currently don't use this though.
+
+	// Find the first time we cross the threshold
+	for (tau = MIN_TAU; tau <= MAX_TAU; tau++) {
+				//   p_zero not found     greater than zero   index                    prev less than zero
+		if (p_zero == MIN_TAU && nsdf_buf[tau-MIN_TAU] >= threshold && tau-MIN_TAU > 0 && nsdf_buf[tau-MIN_TAU-1] <= threshold) {
+			p_zero = tau;
+		}
+		if (p_zero != MIN_TAU && n_zero == MAX_TAU && nsdf_buf[tau-MIN_TAU] <= threshold && tau-MIN_TAU > 0 && nsdf_buf[tau-MIN_TAU-1] >= threshold) {
+			n_zero = tau;
+		}
+	}
 
 	//printk("p_zero: %u, n_zero: %u\n", p_zero, n_zero); // Debug zero-crossing calculations
 
 	// If the data never crosses 0, it is bad and we should quit.
-	if (p_zero == MIN_TAU) {
+	if (p_zero == MIN_TAU || threshold == 0) {
 		// Set the uncertainty to one for bad data.
 		*uncertainty = 1;
 		return 0;
@@ -103,39 +106,49 @@ float predict_freq(float *uncertainty) {
 
 	// These constants transform from the calculated frequency to
 	// actual frequency based on a linear fit of the data we collected on 11/3.
-	// For 62500 Hz sample rate, 1000-4000 frequency min and max
-    return (SAMPLE_RATE / (double)max_tau + 0.2248771853f) / 1.008076169f;
+	// For 62500 Hz sample rate, 100-4000 frequency min and max
+    //return (SAMPLE_RATE / (double)max_tau + 0.2248771853f) / 1.008076169f;
+	return (SAMPLE_RATE / (double)max_tau);
 }
 
 // Normalized square difference function, from the paper
 // O(SAMPLE_RATE * (1/MIN_FREQUENCY - 1/MAX_FREQUENCY))
 float nsdf(uint16_t tau) {
-    return 2. * acr(tau) / m(tau);
-}
 
-// Autocorrelation function, from the paper
-// O(SAMPLE_RATE * (1/MIN_FREQUENCY - 1/MAX_FREQUENCY))
-float acr(uint16_t tau) {
-    int i;
-    float sum = 0;
+	float acr_sum = 0, m_sum = 0;
+
+	int i;
 	for (i = 0; i < BUF_SIZE - 1 - tau; i++) {                                                                                                                                                                                                       
-		sum += audio_bitshifted[i] * audio_bitshifted[i + tau];                                                                                                                                                                                                
+		acr_sum += audio_bitshifted[i] * audio_bitshifted[i + tau]; 
+		m_sum += audio_squared[i] + audio_squared[i + tau];                                                                                                                                                                                               
 	}
-    return sum;
+	
+    return 2. * acr_sum / m_sum;
 }
 
-// M function, from the paper
-// O(SAMPLE_RATE * (1/MIN_FREQUENCY - 1/MAX_FREQUENCY))
-float m(uint16_t tau) {
-    int i;                                                                                            
-	float sum = 0;
-    //calculate each m value                                                                                                                                                                                                                     
-	for (i = 0; i < BUF_SIZE - 1 - tau; i++) {
-        sum += audio_squared[i] + audio_squared[i + tau];
-    }
+// // Autocorrelation function, from the paper
+// // O(SAMPLE_RATE * (1/MIN_FREQUENCY - 1/MAX_FREQUENCY))
+// float acr(uint16_t tau) {
+//     int i;
+//     float sum = 0;
+// 	for (i = 0; i < BUF_SIZE - 1 - tau; i++) {                                                                                                                                                                                                       
+// 		sum += audio_bitshifted[i] * audio_bitshifted[i + tau];                                                                                                                                                                                                
+// 	}
+//     return sum;
+// }
 
-    return sum;
-}    
+// // M function, from the paper
+// // O(SAMPLE_RATE * (1/MIN_FREQUENCY - 1/MAX_FREQUENCY))
+// float m(uint16_t tau) {
+//     int i;                                                                                            
+// 	float sum = 0;
+//     //calculate each m value                                                                                                                                                                                                                     
+// 	for (i = 0; i < BUF_SIZE - 1 - tau; i++) {
+//         sum += audio_squared[i] + audio_squared[i + tau];
+//     }
+
+//     return sum;
+// }    
 
 // Matches the frequency provided with a note and returns the note as a c-string. Also stores the error in error if error is not nullptr
 // O(NUM_NOTES)
