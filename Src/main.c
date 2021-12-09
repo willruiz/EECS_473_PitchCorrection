@@ -19,7 +19,7 @@
 #define DROP_UNCERTAIN_DATA 1 // Change this to zero to turn dropping off
 #define UNCERTAINTY_COUNT_TO_DISABLE 10 //The number of uncertain reads in a row before haptic feedback is disabled
 
-#define CUTOFF_ERROR 5.f //The allowed error band
+#define CUTOFF_ERROR 25.f //The allowed error band
 
 // Debug LED pins
 #define DBG_PIN_LED2 12
@@ -46,7 +46,7 @@ float error;
 uint8_t i;
 
 // Buffer for averaging
-#define BUF_AVG_SIZE 1
+#define BUF_AVG_SIZE 10
 float freqs_avg_buffer[BUF_AVG_SIZE];
 uint8_t freq_curr_index = 0;
 
@@ -64,11 +64,8 @@ int main() {
 	// 	nrf_gpio_pin_clear(DEBUG_PIN);
 	// 	nrf_gpio_pin_clear(DEBUG_LED);
 	// 	k_sleep(K_MSEC(500));
-	// 	if (nrf_gpio_pin_read(DBG_PIN_29)) {
-	// 		nrf_gpio_pin_set(DEBUG_PIN);
-	// 		nrf_gpio_pin_set(DEBUG_LED);
-	// 		while(1) {}
-	// 	}
+	// 	nrf_gpio_pin_set(DEBUG_PIN);
+	// 	nrf_gpio_pin_set(DEBUG_LED);
 	// 	k_sleep(K_MSEC(500));
 	// }
 
@@ -95,6 +92,7 @@ int main() {
 	if (DO_LED_DEBUGGING) {
 		nrf_gpio_cfg_output(DBG_PIN_LED2);
 		nrf_gpio_cfg_output(DBG_PIN_LED3);
+		nrf_gpio_cfg_output(DBG_PIN_28);
 	}
 
 	// Start microphone
@@ -151,6 +149,7 @@ int main() {
 
 			if (DO_LED_DEBUGGING) {
 				nrf_gpio_pin_clear(DBG_PIN_LED2);
+				nrf_gpio_pin_clear(DBG_PIN_28);
 			}
 			//printk("Uncertainty drop. Freq %f, Uncertainty %f\n", frequency, uncertainty * 100.f);
 			continue;
@@ -177,18 +176,21 @@ int main() {
 			haptic_set_both_enable(HAPTIC_DISABLED);
 			if (DO_LED_DEBUGGING) {
 				nrf_gpio_pin_set(DBG_PIN_LED2);
+				nrf_gpio_pin_set(DBG_PIN_28);
 			}
 		} else if (error < 0) {
 			haptic_set(HAPTIC_LEFT, HAPTIC_ENABLED, error / -100.f); //Left is flat
 			haptic_set(HAPTIC_RIGHT, HAPTIC_DISABLED, 0.f);
 			if (DO_LED_DEBUGGING) {
 				nrf_gpio_pin_clear(DBG_PIN_LED2);
+				nrf_gpio_pin_clear(DBG_PIN_28);
 			}
 		} else {
 			haptic_set(HAPTIC_RIGHT, HAPTIC_ENABLED, error / 100.f); //Right is sharp
 			haptic_set(HAPTIC_LEFT, HAPTIC_DISABLED, 0.f);
 			if (DO_LED_DEBUGGING) {
 				nrf_gpio_pin_clear(DBG_PIN_LED2);
+				nrf_gpio_pin_clear(DBG_PIN_28);
 			}
 		}
 
